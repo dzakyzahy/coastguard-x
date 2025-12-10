@@ -1,33 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PersonStanding, Timer, TrendingDown, MapPin, CheckCircle2 } from "lucide-react";
+import { PersonStanding, Timer, TrendingDown, CheckCircle2, ShieldAlert } from "lucide-react";
 import clsx from "clsx";
 
-export default function EvacuationPanel() {
-    const [selectedRoute, setSelectedRoute] = useState<'fastest' | 'safest' | null>('fastest');
+export default function EvacuationPanel({ isWarningActive }: { isWarningActive: boolean }) {
+    const [selectedRoute, setSelectedRoute] = useState<'fastest' | 'safest'>('fastest');
+
+    useEffect(() => {
+        if (isWarningActive) {
+            setSelectedRoute('safest');
+        }
+    }, [isWarningActive]);
 
     return (
         <motion.div
-            className="glass-card rounded-3xl p-6 flex flex-col h-full"
+            className="glass-card rounded-3xl p-6 flex flex-col h-full border border-white/5 transition-all"
             initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0, borderColor: isWarningActive ? 'rgba(239, 68, 68, 0.4)' : 'rgba(255,255,255,0.05)' }}
             transition={{ delay: 0.2 }}
         >
             <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                <PersonStanding className="text-safe" />
+                <PersonStanding className={isWarningActive ? "text-red-400" : "text-safe"} />
                 Evacuation Simulation
             </h3>
 
             <div className="flex gap-2 mb-6 p-1 bg-white/5 rounded-xl border border-white/5">
                 <button
                     onClick={() => setSelectedRoute('fastest')}
+                    disabled={isWarningActive}
                     className={clsx(
                         "flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-300",
                         selectedRoute === 'fastest'
                             ? "bg-white/10 text-white shadow-lg border border-white/10"
-                            : "text-slate-400 hover:text-white hover:bg-white/5"
+                            : "text-slate-400 hover:text-white hover:bg-white/5",
+                        isWarningActive && "opacity-50 cursor-not-allowed"
                     )}
                 >
                     Rute Tercepat
@@ -83,14 +91,14 @@ export default function EvacuationPanel() {
                                 value="Low Risk"
                                 color="text-safe"
                                 icon={<CheckCircle2 size={18} />}
-                                desc="Route avoids potential inundation zones."
+                                desc="Route avoids potential inundation zones (>12m)."
                             />
                             <ResultCard
                                 label="Estimated Time"
                                 value="11 Minutes"
                                 color="text-white"
                                 icon={<Timer size={18} />}
-                                desc="+2 mins detouring to higher ground."
+                                desc="+2 mins detour to reach higher ground."
                             />
                         </motion.div>
                     )}
@@ -98,9 +106,24 @@ export default function EvacuationPanel() {
             </div>
 
             <div className="mt-6 pt-4 border-t border-white/10">
-                <button className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all active:scale-[0.98]">
-                    Start Simulation
-                </button>
+                <motion.button 
+                    className={clsx(
+                        "w-full py-3 rounded-xl text-white font-semibold shadow-lg transition-all active:scale-[0.98]",
+                        isWarningActive
+                          ? "bg-gradient-to-r from-red-600 to-amber-500 shadow-red-500/40 hover:shadow-red-500/60"
+                          : "bg-gradient-to-r from-blue-600 to-cyan-500 shadow-blue-500/25 hover:shadow-blue-500/40"
+                    )}
+                    animate={{
+                        scale: isWarningActive ? [1, 1.03, 1] : 1,
+                    }}
+                    transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                    }}
+                >
+                    {isWarningActive ? "START EVACUATION" : "Start Simulation"}
+                </motion.button>
             </div>
         </motion.div>
     );
